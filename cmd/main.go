@@ -6,5 +6,6 @@ import (
 
 func main() {
 	l := life.NewGame(10, 10)
+	l.Randomize()
 	l.Print()
 }
