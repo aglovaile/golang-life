@@ -13,8 +13,9 @@ type Game struct {
 }
 
 // Counts live cells around a cell
-func countNeighbors(grid [][]int, location [2]int) int {
+func (g *Game) countNeighbors(location [2]int) int {
 	// coordinates must be in an array of [Row, Column] format
+	grid := g.Grid
 	y, x := location[0], location[1]
 	lenY, lenX := len(grid), len(grid[0])
 	var neighbors int
@@ -33,6 +34,26 @@ func countNeighbors(grid [][]int, location [2]int) int {
 	}
 	return neighbors
 }
+
+// Find all cells touching alive ones
+// func (g *Game) findAliveCells() [][]int {
+// 	var cells [][]int
+// 	for i := range g.Grid {
+// 		for j := range g.Grid[i] {
+// 			if i && j {
+// 				cells = append(cells, [2]{i,j})
+// 			}
+// 		}
+// 	}
+// }
+
+// func checkIfAlive(grid [][]int, location [2]int) bool {
+// 	n := countNeighbors(grid, location)
+// 	if n == 2 || n == 3 {
+// 		return true
+// 	}
+// 	return false
+// }
 
 func (g *Game) Iterate() error {
 	return nil
