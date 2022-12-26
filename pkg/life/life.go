@@ -6,9 +6,32 @@ import (
 	"time"
 )
 
+// In Grid cells, 0 is dead and 1 is alive
 type Game struct {
 	Grid       [][]int
 	Iterations int
+}
+
+// Counts live cells around a cell
+func countNeighbors(grid [][]int, location [2]int) int {
+	// coordinates must be in an array of [Row, Column] format
+	y, x := location[0], location[1]
+	lenY, lenX := len(grid), len(grid[0])
+	var neighbors int
+
+	for i := -1; i < 2; i++ {
+		if (i+y != -1) && (i+y != lenY) {
+			for j := -1; j < 2; j++ {
+				if j == 0 && i == 0 {
+					continue
+				}
+				if j+x != -1 && j+x != lenX {
+					neighbors += grid[i+y][j+x]
+				}
+			}
+		}
+	}
+	return neighbors
 }
 
 func (g *Game) Iterate() error {
@@ -24,11 +47,7 @@ func (g *Game) Randomize() {
 		for j := range g.Grid[i] {
 			s := rand.NewSource(time.Now().UnixNano())
 			r := rand.New(s)
-			if r.Intn(2) != 0 {
-				g.Grid[i][j] = 1
-			} else {
-				g.Grid[i][j] = 0
-			}
+			g.Grid[i][j] = r.Intn(2)
 		}
 	}
 }
