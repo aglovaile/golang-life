@@ -53,3 +53,20 @@ func TestCountNeighbors(t *testing.T) {
 	}
 	assert.Equal(t, 2, g.countNeighbors([2]int{2, 2}))
 }
+
+func TestFindAliveCells(t *testing.T) {
+	g := &Game{[][]int{
+		{0, 0, 0},
+		{0, 0, 0},
+		{0, 0, 1},
+	}, 0}
+
+	expectedCells := [][2]int{
+		{1, 1},
+		{1, 2},
+		{2, 1},
+		{2, 2},
+	}
+
+	assert.Equal(t, expectedCells, g.cellsToCheck())
+}

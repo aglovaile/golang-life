@@ -12,6 +12,16 @@ type Game struct {
 	Iterations int
 }
 
+// Utility Functions
+func appendIfMissing(slice [][2]int, i [2]int) [][2]int {
+	for _, e := range slice {
+		if e == i {
+			return slice
+		}
+	}
+	return append(slice, i)
+}
+
 // Counts live cells around a cell
 func (g *Game) countNeighbors(location [2]int) int {
 	// coordinates must be in an array of [Row, Column] format
@@ -36,24 +46,27 @@ func (g *Game) countNeighbors(location [2]int) int {
 }
 
 // Find all cells touching alive ones
-// func (g *Game) findAliveCells() [][]int {
-// 	var cells [][]int
-// 	for i := range g.Grid {
-// 		for j := range g.Grid[i] {
-// 			if i && j {
-// 				cells = append(cells, [2]{i,j})
-// 			}
-// 		}
-// 	}
-// }
+func (g *Game) cellsToCheck() [][2]int {
+	lenY, lenX := len(g.Grid), len(g.Grid[0])
+	var cells [][2]int
 
-// func checkIfAlive(grid [][]int, location [2]int) bool {
-// 	n := countNeighbors(grid, location)
-// 	if n == 2 || n == 3 {
-// 		return true
-// 	}
-// 	return false
-// }
+	for i := range g.Grid {
+		for j := range g.Grid[i] {
+			if g.Grid[i][j] == 1 {
+				for m := -1; m < 2; m++ {
+					if i+m != 0 && i+m != lenY {
+						for n := -1; n < 2; n++ {
+							if j+n != 0 && j+n != lenX {
+								cells = appendIfMissing(cells, [2]int{i + m, j + n})
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return cells
+}
 
 func (g *Game) Iterate() error {
 	return nil
