@@ -3,6 +3,8 @@ package life
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -31,12 +33,12 @@ func (g *Game) countNeighbors(location [2]int) int {
 	var neighbors int
 
 	for i := -1; i < 2; i++ {
-		if (i+y != -1) && (i+y != lenY) {
+		if (i+y > -1) && (i+y < lenY) {
 			for j := -1; j < 2; j++ {
 				if j == 0 && i == 0 {
 					continue
 				}
-				if j+x != -1 && j+x != lenX {
+				if j+x > -1 && j+x < lenX {
 					neighbors += grid[i+y][j+x]
 				}
 			}
@@ -46,6 +48,7 @@ func (g *Game) countNeighbors(location [2]int) int {
 }
 
 // Find all cells touching alive ones
+// used dur ing lifecycle iteration to find cells that may be alive
 func (g *Game) cellsToCheck() [][2]int {
 	lenY, lenX := len(g.Grid), len(g.Grid[0])
 	var cells [][2]int
@@ -54,9 +57,9 @@ func (g *Game) cellsToCheck() [][2]int {
 		for j := range g.Grid[i] {
 			if g.Grid[i][j] == 1 {
 				for m := -1; m < 2; m++ {
-					if i+m != 0 && i+m != lenY {
+					if i+m > -1 && i+m < lenY {
 						for n := -1; n < 2; n++ {
-							if j+n != 0 && j+n != lenX {
+							if j+n > -1 && j+n < lenX {
 								cells = appendIfMissing(cells, [2]int{i + m, j + n})
 							}
 						}
@@ -68,14 +71,47 @@ func (g *Game) cellsToCheck() [][2]int {
 	return cells
 }
 
-func (g *Game) Iterate() error {
-	return nil
+// takes in [y,x] as cell index
+// returns 1 if cell lives, 0 if it dies
+func (g *Game) ifCellLives(location [2]int) int {
+	cell := g.Grid[location[0]][location[1]]
+	neighbors := g.countNeighbors(location)
+	total := cell + neighbors
+	if neighbors == 3 || total == 3 {
+		return 1
+	}
+	return 0
+}
+
+// Game Methods
+
+// Iterates the Game through one generation
+func (g *Game) Iterate() {
+	changes := make(map[[2]int]int)
+	c := g.cellsToCheck()
+	for _, cell := range c {
+		status := g.ifCellLives(cell)
+		if status != g.Grid[cell[0]][cell[1]] {
+			changes[cell] = status
+		}
+	}
+	for cell, val := range changes {
+		g.Grid[cell[0]][cell[1]] = val
+	}
+	g.Iterations++
 }
 
 func (g *Game) Print() {
-	fmt.Print(g.Grid)
+	for _, i := range g.Grid {
+		var r []string
+		for _, j := range i {
+			r = append(r, strconv.Itoa(j))
+		}
+		fmt.Println(strings.Join(r, ""))
+	}
 }
 
+// todo: fix all rows being the same after randomizing"
 func (g *Game) Randomize() {
 	for i := range g.Grid {
 		for j := range g.Grid[i] {
