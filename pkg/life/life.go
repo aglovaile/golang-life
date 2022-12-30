@@ -1,6 +1,7 @@
 package life
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"strconv"
@@ -14,7 +15,7 @@ type Game struct {
 	Iterations int
 }
 
-// Utility Functions
+// Helper func for cellsToCheck private method
 func appendIfMissing(slice [][2]int, i [2]int) [][2]int {
 	for _, e := range slice {
 		if e == i {
@@ -47,12 +48,14 @@ func (g *Game) countNeighbors(location [2]int) int {
 	return neighbors
 }
 
-// Find all cells touching alive ones
-// used dur ing lifecycle iteration to find cells that may be alive
+// Find all cells touching alive ones.
+// Used during lifecycle iteration to find which cells to check for life.
 func (g *Game) cellsToCheck() [][2]int {
 	lenY, lenX := len(g.Grid), len(g.Grid[0])
 	var cells [][2]int
 
+	// i,j for grid y,x
+	// m,n for neighbors y,x
 	for i := range g.Grid {
 		for j := range g.Grid[i] {
 			if g.Grid[i][j] == 1 {
@@ -71,8 +74,8 @@ func (g *Game) cellsToCheck() [][2]int {
 	return cells
 }
 
-// takes in [y,x] as cell index
-// returns 1 if cell lives, 0 if it dies
+// Takes in [y,x] as cell index.
+// Returns 1 if cell lives, 0 if it dies.
 func (g *Game) ifCellLives(location [2]int) int {
 	cell := g.Grid[location[0]][location[1]]
 	neighbors := g.countNeighbors(location)
@@ -101,6 +104,7 @@ func (g *Game) Iterate() {
 	g.Iterations++
 }
 
+// Utility method that prints the Grid to terminal as lines of strings
 func (g *Game) Print() {
 	for _, i := range g.Grid {
 		var r []string
@@ -111,23 +115,42 @@ func (g *Game) Print() {
 	}
 }
 
-// todo: fix all rows being the same after randomizing"
+// Sets all Game.Grid cell values to randomly either 0 or 1
 func (g *Game) Randomize() {
+	rand.Seed(time.Now().UnixNano())
 	for i := range g.Grid {
 		for j := range g.Grid[i] {
-			s := rand.NewSource(time.Now().UnixNano())
-			r := rand.New(s)
-			g.Grid[i][j] = r.Intn(2)
+			g.Grid[i][j] = rand.Intn(2)
 		}
 	}
 }
 
-// returns a new Game struct with y rows and x cells per row
+// Returns a new Game struct with y rows and x cells per row.
 func NewGame(x int, y int) *Game {
 	grid := make([][]int, y)
-	row := make([]int, x)
 	for i := range grid {
-		grid[i] = row
+		grid[i] = make([]int, x)
 	}
 	return &Game{Grid: grid}
+}
+
+// Returns a new Game struct from maa 2D array of 0s and 1s.
+func NewGameFromSeed(seed [][]int) (*Game, error) {
+	// check if all rows have same length
+	var columnCounts []int
+	for _, i := range seed {
+		columnCounts = append(columnCounts, len(i))
+		for _, j := range i {
+			if j < 0 || j > 1 {
+				return nil, errors.New("Proveded seed array contains a cell value that is not 0 or 1")
+			}
+		}
+	}
+	l := columnCounts[0]
+	for _, i := range columnCounts[1:] {
+		if i != l {
+			return nil, errors.New("Provided seed array does not have rows of all the same length.")
+		}
+	}
+	return &Game{Grid: seed}, nil
 }
